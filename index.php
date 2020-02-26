@@ -163,6 +163,8 @@
   <!-- The Modal -->
         <?php
             include ('connection.php');
+            date_default_timezone_set("Asia/Kolkata");
+            $x=date('Y-m-d H:i:s');
 
             $query="SELECT * FROM parking_lot JOIN status ON parking_lot.parking_id=status.parking_id";
             $result=mysqli_query($conn,$query);
@@ -173,9 +175,29 @@
                 $parking_id=$row['parking_id'];
                 $vehicle_no=$row['vehicle_no'];
                 $mobile_no=$row['mobile_no'];
+                $date=$row['date_date'];
                 $parking_status=$row['parking_status'];
                 $parking_color=$row['parking_color'];
 
+                $start_date=new DateTime($row['date_date']);
+                $since_start=$start_date->diff(new DateTime($x));
+                $minutes+=$since_start->days*24*60;
+                $minutes+=$since_start->h*60;
+                $minutes+=$since_start->i;
+
+                if ($minutes<='60') {
+                    $amount='20';
+                } elseif ($minutes>'60' and $minutes<='120') {
+                    $amount='30';
+                } elseif ($minutes>'120' and $minutes<='180') {
+                    $amount='40';
+                } elseif ($minutes>'180' and $minutes<='240') {
+                    $amount='50';
+                } else {
+                    $amount='80';
+                }
+
+ 
             echo '<div class="modal fade" id="myModal-'.$name.'">
             
     <div class="modal-dialog modal-sm">
@@ -205,9 +227,11 @@
                   <button type="submit" class="btn btn-danger" data-dismiss="modal">Cancel</button><br><br>';
          }
          else{
-            echo '<input type="text" class="form-control" placeholder="Car Details" id="car" name="carno" value="'.$vehicle_no.'"><br><br>
+            echo '<input type="text" class="form-control" placeholder="Car Details" name="carno" value="'.$vehicle_no.'"><br><br>
   
-                  <input type="mobile" class="form-control" placeholder="Enter Mobile Number" id="mobile" name="mobileno"><br><br>
+                  <input type="mobile" class="form-control" placeholder="Enter Mobile Number"  name="mobileno"><br><br>
+
+                  <input type="text" class="form-control"  name="amount" value="Rs '.$amount.'" disabled><br><br>
 
                   <input type="hidden" class="form-control" name="selected_parking_slot" value="'.$name.'"><br><br>
 
@@ -215,11 +239,9 @@
 
                   <button type="submit" class="btn btn-danger" data-dismiss="modal">Cancel</button><br><br>';
          }
-
          ?>
 
          
-
  
   <?php 
 
@@ -235,10 +257,13 @@
 
         <?php
             if (isset($_GET['park'])) {
+                date_default_timezone_set("Asia/Kolkata");
+                $x=date('Y-m-d H:i:s');
+
                 $selected_parking_slot=$_GET['selected_parking_slot'];
                 $vehicle_no=$_GET['vehicle_no'];
                 $mobile_no=$_GET['mobile_no'];
-                $book_parking_lot="UPDATE parking_lot SET parking_id='1', vehicle_no='$vehicle_no', mobile_no='$mobile_no' WHERE name='$selected_parking_slot'";
+                $book_parking_lot="UPDATE parking_lot SET parking_id='1', vehicle_no='$vehicle_no', mobile_no='$mobile_no', date_date='$x' WHERE name='$selected_parking_slot'";
 
                     if(mysqli_query($conn, $book_parking_lot))
 
@@ -254,7 +279,11 @@
         <?php
             if (isset($_GET['freeslot'])) {
                 $selected_parking_slot=$_GET['selected_parking_slot'];
-                $empty_parking_lot="UPDATE parking_lot SET parking_id='0', vehicle_no='', mobile_no='' WHERE name='$selected_parking_slot'";
+                $mobile_no=$_GET['mobile_no'];
+                    date_default_timezone_set("Asia/Kolkata");
+                    
+
+                $empty_parking_lot="UPDATE parking_lot SET parking_id='0', vehicle_no='', mobile_no='', date_date='' WHERE name='$selected_parking_slot'";
 
                     if(mysqli_query($conn, $empty_parking_lot))
                             {
@@ -262,7 +291,8 @@
                                 alert('Unpark Successful!');
                                 window.location.href='index.php';
                                 </script>";
-                            }
+                          }
+            
             }
         ?>
   
